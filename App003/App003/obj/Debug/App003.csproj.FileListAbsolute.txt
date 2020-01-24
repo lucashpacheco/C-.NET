@@ -1,0 +1,12 @@
+C:\Users\lucas\source\repos\App003\App003\bin\Debug\App003.exe.config
+C:\Users\lucas\source\repos\App003\App003\bin\Debug\App003.exe
+C:\Users\lucas\source\repos\App003\App003\bin\Debug\App003.pdb
+C:\Users\lucas\source\repos\App003\App003\obj\Debug\App003.csprojAssemblyReference.cache
+C:\Users\lucas\source\repos\App003\App003\obj\Debug\App003.Form1.resources
+C:\Users\lucas\source\repos\App003\App003\obj\Debug\App003.Properties.Resources.resources
+C:\Users\lucas\source\repos\App003\App003\obj\Debug\App003.csproj.GenerateResource.cache
+C:\Users\lucas\source\repos\App003\App003\obj\Debug\App003.exe
+C:\Users\lucas\source\repos\App003\App003\obj\Debug\App003.pdb
+C:\Users\lucas\source\repos\App003\App003\obj\Debug\App003.Form2.resources
+C:\Users\lucas\source\repos\App003\App003\obj\Debug\App003.Form3.resources
+C:\Users\lucas\source\repos\App003\App003\obj\Debug\App003.Form4.resources
