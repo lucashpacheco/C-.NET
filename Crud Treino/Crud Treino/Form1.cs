@@ -1,158 +1,161 @@
-﻿using System;
+﻿using Crud_Treino.Models;
+using Crud_Treino.Repositories;
+using Crud_Treino.Validacoes;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Data.SqlClient;
-
 
 namespace Crud_Treino
 {
-    
-    public partial class Form1 : Form
+
+    public partial class telaprincipal : Form
     {
-        SqlConnection con = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=Crud;Data Source=DESKTOPW");
-        SqlCommand cmd;
-        SqlDataAdapter adapt;
-        int ID = 0;
-        public Form1()
+        private Register Register
+        {
+            get
+            {
+                return new Register()
+                {
+                    Id = string.IsNullOrEmpty(textID.Text) ? 0 : int.Parse(textID.Text),
+                    Nome = txtnome.Text,
+                    Apelido = txtapelido.Text,
+                    Login = txtlogin.Text,
+                    Obs = txtobs.Text,
+                    Senha = txtsenha.Text
+                };
+            }
+        }
+
+        private List<TextBox> _textBoxes;
+
+        public telaprincipal()
         {
             InitializeComponent();
-            ExibirDados();
+            _textBoxes = new List<TextBox>()
+            {
+                textID,
+                txtnome,
+                txtapelido,
+                txtlogin,
+                txtsenha,
+                txtobs
+            };
 
+            ExibirDados();
         }
 
         private void ExibirDados()
         {
             try
             {
-                con.Open();
-                DataTable dt = new DataTable();
-                adapt = new SqlDataAdapter("SELECT * FROM list_users", con);
-                adapt.Fill(dt);
-                dataGridView1.DataSource = dt;
+                
+               
+                var registers = Form1Repository.GetAllRegisters();
+
+                dataGridView1.DataSource = registers;
                 
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                throw new Exception($"Erro: {ex.Message}");
             }
-            finally
-            {
-                con.Close();
-            }
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-
-            LimparDados();
-            
         }
 
         private void LimparDados()
         {
-            txtnome.Text = "";
-            txtapelido.Text = "";
-            txtlogin.Text = "";
-            txtsenha.Text = "";
-            txtobs.Text = "";
-            txtid.Text = "";
+            Utils.Utils.CleanTextBox(_textBoxes);
+
             txtnome.Focus();
         }
 
-        private void textBox6_TextChanged(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e)
         {
-
-        }
-
-        private void textBox3_TextChanged(object sender, EventArgs e)
-        {
-
+            LimparDados();
+            ExibirDados();
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
-            if (txtnome.Text != "" && txtapelido.Text != "" && txtlogin.Text != "" && txtsenha.Text != "" && txtobs.Text != "")
+            if (FormValidation.ValidaCadastro(_textBoxes))
             {
                 try
                 {
-                    cmd = new SqlCommand("INSERT INTO list_users(Nome,Apelido,Logg,Senha,Obs) VALUES(@nome,@apelido,@login,@senha,@obs)", con);
-                    con.Open();
-                    cmd.Parameters.AddWithValue("@nome", txtnome.Text);
-                    cmd.Parameters.AddWithValue("@apelido", txtapelido.Text);
-                    cmd.Parameters.AddWithValue("@login", txtlogin.Text);
-                    cmd.Parameters.AddWithValue("@senha", txtsenha.Text);
-                    cmd.Parameters.AddWithValue("@obs", txtobs.Text);
-                    cmd.ExecuteNonQuery();
-                    MessageBox.Show("Registro incluído com sucesso...");
+                    var qtdInserted = Form1Repository.InsertRegister(Register);
+
+                    if (qtdInserted > 0)
+                        MessageBox.Show("Registro incluído com sucesso...");
+                    else
+                        throw new Exception("Nenhum registro inserido");
+
+                    LimparDados();
+                    ExibirDados();
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show("Erro : " + ex.Message);
-                }
-                finally
-                {
-                    con.Close();
                     ExibirDados();
                     LimparDados();
                 }
             }
             else
             {
-                MessageBox.Show("Informe todos os dados requeridos");
+                MessageBox.Show("Por favor preencha os campos destacados.");
             }
         }
-
-       
-
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-            try
-            {
-                ID = Convert.ToInt32(dataGridView1.Rows[e.RowIndex].Cells[0].Value.ToString());
-                txtnome.Text = dataGridView1.Rows[e.RowIndex].Cells[1].Value.ToString();
-                txtapelido.Text = dataGridView1.Rows[e.RowIndex].Cells[2].Value.ToString();
-                txtlogin.Text = dataGridView1.Rows[e.RowIndex].Cells[3].Value.ToString();
-                txtsenha.Text = dataGridView1.Rows[e.RowIndex].Cells[4].Value.ToString();
-                txtobs.Text = dataGridView1.Rows[e.RowIndex].Cells[5].Value.ToString();
-                txtid.Text = Convert.ToString(ID);
-            }
-            catch
-            {
+        
                 
+        
+                
+        private void PassarDadosForm()
+        {
+            Int32 selectedRowCount = dataGridView1.Rows.GetRowCount(DataGridViewElementStates.Selected);
+
+            if (selectedRowCount > 0)
+            {
+                MessageBox.Show("CLIQUE EM 'SALVAR' PARA ATUALIZAR AS INFORMAÇOES DO REGISTRO ABERTO");
+                try
+                {
+
+
+                    foreach (DataGridViewRow row in dataGridView1.SelectedRows)
+                    {
+                        if (row.IsNewRow) continue;
+                        textID.Text = Convert.ToString(row.Cells[0].Value);
+                        txtnome.Text = Convert.ToString(row.Cells[1].Value);
+                        txtapelido.Text = Convert.ToString(row.Cells[2].Value);
+                        txtlogin.Text = Convert.ToString(row.Cells[3].Value);
+                        txtsenha.Text = Convert.ToString(row.Cells[4].Value);
+                        txtobs.Text = Convert.ToString(row.Cells[5].Value);
+
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Erro: {ex.Message}");
+                }
             }
         }
-
 
         private void button2_Click(object sender, EventArgs e)
         {
-            if (txtnome.Text != "" && txtapelido.Text != "" && txtlogin.Text != "" && txtsenha.Text != "" && txtobs.Text != "")
+            if (FormValidation.ValidaCadastro(_textBoxes))
             {
                 try
-                { 
-                cmd = new SqlCommand("UPDATE list_users SET Nome=@nome, Apelido=@apelido, Logg=@login, Senha=@senha, Obs=@obs WHERE Id=@id", con);
-                con.Open();
-                cmd.Parameters.AddWithValue("@id", ID);
-                cmd.Parameters.AddWithValue("@nome", txtnome.Text);
-                cmd.Parameters.AddWithValue("@apelido", txtapelido.Text);
-                cmd.Parameters.AddWithValue("@login", txtlogin.Text);
-                cmd.Parameters.AddWithValue("@senha", txtsenha.Text);
-                cmd.Parameters.AddWithValue("@obs", txtobs.Text);
-                cmd.ExecuteNonQuery();
-                MessageBox.Show("Registro atualizado com sucesso...");
+                {
+                    var qtdExecuted = Form1Repository.UpdateRegister(Register);
+
+                    if (qtdExecuted > 0)
+                        MessageBox.Show("Registro atualizado com sucesso...");
+                    else
+                        throw new Exception("Nunehum registro foi atualizado...");
+
+                    LimparDados();
+                    ExibirDados();
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show("Erro : " + ex.Message);
-                }
-                finally
-                {
-                    con.Close();
                     ExibirDados();
                     LimparDados();
                 }
@@ -165,67 +168,70 @@ namespace Crud_Treino
 
         private void button4_Click(object sender, EventArgs e)
         {
-            if (ID != 0)
+            if (!FormValidation.ValidaCadastro(_textBoxes))
+                MessageBox.Show("Por favor selecione um registro");
+
+            var dialog = MessageBox.Show("Deseja Deletar este registro ?", "Agenda", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (dialog == DialogResult.Yes)
             {
-                if (MessageBox.Show("Deseja Deletar este registro ?", "Agenda", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                if (Register.Id == 0)
+                    throw new Exception("Por favor selecione um registro para deletar");
+                try
                 {
-                    try
-                    {
-                        cmd = new SqlCommand("DELETE list_users WHERE Id=@id", con);
-                        con.Open();
-                        cmd.Parameters.AddWithValue("@id", ID);
-                        cmd.ExecuteNonQuery();
+                    var qtdExecuted = Form1Repository.DeleteRegister(Register.Id);
+
+                    if (qtdExecuted > 0)
                         MessageBox.Show("registro deletado com sucesso...!");
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("Erro : " + ex.Message);
-                    }
-                    finally
-                    {
-                        con.Close();
-                        ExibirDados();
-                        LimparDados();
-                    }
+                    else
+                        throw new Exception($"Nenhum registro encontrado com o id: {Register.Id}");
+
+                    ExibirDados();
+                    LimparDados();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Erro : " + ex.Message);
+                    ExibirDados();
+                    LimparDados();
                 }
             }
             else
             {
                 MessageBox.Show("Selecione um registro para deletar");
             }
-
-
         }
 
         private void button5_Click(object sender, EventArgs e)
         {
-            
-
-            if (ID != 0)
-
+            if (string.IsNullOrEmpty(txtidpesquisa.Text))
             {
-                try
-                {
-                    con.Open();
-                    DataTable dt = new DataTable();
-                    cmd = new SqlCommand("SELECT * FROM list_users WHERE Id=@id", con);
-                    adapt.SelectCommand = cmd;
-                    cmd.Parameters.AddWithValue("@id", txtidpesquisa.Text);
-                    adapt.Fill(dt);
-                    dataGridView1.DataSource = dt;
-                    
-                }
-                catch
-                {
-                    throw;
-                }
-                finally
-                {
-                    con.Close();
-                }
+                ExibirDados();
+                
+                return;
             }
-          
+
+            try
+            {
+                var register = Form1Repository.GetRegisterById(int.Parse(txtidpesquisa.Text));
+
+                dataGridView1.DataSource = register;
+                
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Erro: {ex.Message}");
+            }
+        }
+
+        private void novobutton_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void editar_Click(object sender, EventArgs e)
+        {
+            PassarDadosForm();
         }
     }
-
 }
